@@ -7,16 +7,31 @@ import {
   View,
 } from 'react-native';
 import {Formik} from 'formik';
+import * as Yup from 'yup';
 
-const FormikYup = () => {
+const Form = () => {
   const {width} = Dimensions.get('window');
+
+  const validationSchema = Yup.object({
+    email: Yup.string()
+      .email('Must be email format!')
+      .required('Email is a required field!'),
+    password: Yup.string()
+      .required('Password is a required field!')
+      .min(6, 'Min 6 characters!')
+      .max(14, 'Max 14 characters!'),
+  });
 
   return (
     <View>
       <Formik
+        validationSchema={validationSchema}
         initialValues={{email: '', password: ''}}
-        onSubmit={values => console.log(values)}>
-        {({handleChange, handleSubmit, values}) => (
+        onSubmit={(values, {resetForm}) => {
+          console.log(values);
+          resetForm();
+        }}>
+        {({handleChange, handleSubmit, errors, values}) => (
           <View style={{width, gap: 32}}>
             <View style={{width: '90%', marginHorizontal: 'auto', gap: 4}}>
               <Text style={styles.inputLabel}>Email</Text>
@@ -26,8 +41,14 @@ const FormikYup = () => {
                 inputMode="email"
                 placeholder="test@example.com"
                 autoCapitalize="none"
-                style={styles.inputControl}
+                style={[
+                  styles.inputControl,
+                  errors.email && {borderWidth: 1, borderColor: '#e52020'},
+                ]}
               />
+              {errors.email && (
+                <Text style={styles.errorMessage}>{errors.email}</Text>
+              )}
             </View>
             <View style={{width: '90%', marginHorizontal: 'auto', gap: 4}}>
               <Text style={styles.inputLabel}>Password</Text>
@@ -37,11 +58,19 @@ const FormikYup = () => {
                 secureTextEntry
                 placeholder="*******"
                 autoCapitalize="none"
-                style={styles.inputControl}
+                style={[
+                  styles.inputControl,
+                  errors.password && {borderWidth: 1, borderColor: '#e52020'},
+                ]}
               />
+              {errors.password && (
+                <Text style={styles.errorMessage}>{errors.password}</Text>
+              )}
             </View>
             <TouchableOpacity
-              onPress={() => handleSubmit()}
+              onPress={() => {
+                handleSubmit();
+              }}
               style={styles.loginButton}>
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
@@ -52,7 +81,7 @@ const FormikYup = () => {
   );
 };
 
-export default FormikYup;
+export default Form;
 
 const styles = StyleSheet.create({
   inputControl: {
@@ -80,5 +109,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  errorMessage: {
+    color: '#e52020',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
